@@ -107,16 +107,54 @@ defmodule GameTest do
     assert Game.score(res) == 49
   end
 
-#  test "Roll two strikes, and get the score" do
-#    game = Game.new()
-#    res = Game.roll(game, 1)
-#          |> Game.roll(2)
-#          |> Game.roll(10)
-#    IO.puts(Game.score(res))
-#    res = Game.roll(res, 10)
-#    IO.puts(Game.score(res))
-#    res = Game.roll(res, 4)
-#          |> Game.roll(4)
-#    assert Game.score(res) == 53
-#  end
+  test "Roll two strikes, and get the score" do
+    game = Game.new()
+          |> Game.roll(1)
+          |> Game.roll(2)
+          |> Game.roll(10)
+          |> Game.roll(10)
+          |> Game.roll(4)
+          |> Game.roll(4)
+    assert Game.score(game) == 53
+  end
+
+  test "Roll a perfect game, and get 300" do
+    game = Game.new()
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(10)
+    assert Game.score(game) == 300
+  end
+
+  test "Rolls a full game, and gets the correct score" do
+    game = Game.new()
+           |> Game.roll(3)
+           |> Game.roll(4)
+           |> Game.roll(2)
+           |> Game.roll(7)
+           |> Game.roll(9)
+           |> Game.roll(1)
+           |> Game.roll(3)
+           |> Game.roll(4)
+           |> Game.roll(10)
+           |> Game.roll(6)
+           |> Game.roll(2)
+           |> Game.roll(10)
+           |> Game.roll(10)
+           |> Game.roll(4)
+           |> Game.roll(2)
+           |> Game.roll(1)
+           |> Game.roll(9)
+           |> Game.roll(4)
+    assert Game.score(game) == 122
+  end
 end
