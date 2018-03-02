@@ -4,89 +4,101 @@ defmodule Game do
   end
 
   def roll([], pins) do
-    [[pins]]
+    [Frame.new(pins)]
   end
 
-  def roll(game, pins) do
-    length(last_set(game))
+  def roll(game, pins) when length(game)<=10 do
+    Frame.complete?(length(game), last_set(game))
      |> add_frame(game, pins)
+  end
+
+  def roll(_, _) do
+    raise "This game is finished!"
   end
 
   def score([]) do
     0
   end
 
+  def score(game) when length(game)>=10 do
+    [last_frame | rest] = Enum.reverse(game)
+    [previous_frame | [frame_before_that | _]] = rest
+    score( Frame.total(last_frame, (needs_doubling?(previous_frame, frame_before_that)), :final_frame), rest )
+  end
+
+  def score(game) when length(game)>2 do
+    [last_frame | rest] = Enum.reverse(game)
+    [previous_frame | [frame_before_that | _]] = rest
+    score( Frame.total(last_frame, (needs_doubling?(previous_frame, frame_before_that))), rest )
+  end
+
   def score(game) when length(game)>1 do
     [last_frame | rest] = Enum.reverse(game)
     [previous_frame | _] = rest
-    [first, second] = previous_frame
-    score( total(last_frame, first,second), rest )
+    score( Frame.total(last_frame, (needs_doubling?(previous_frame))), rest )
   end
 
   def score(game) do
-    last_frame = List.last(game)
-    score( total(last_frame), [] )
+    last_frame = last_set(game)
+    score( Frame.total(last_frame), [] )
   end
 
   def score(acc, []) do
     acc
   end
 
+  def score(acc, game) when length(game)>2 do
+    [last_frame | rest] = game
+    [previous_frame | [frame_before_that | _]] = rest
+    score(acc + Frame.total(last_frame, (needs_doubling?(previous_frame, frame_before_that))), rest )
+  end
+
   def score(acc, game) when length(game)>1 do
-    [last_frame | rest] = Enum.reverse(game)
+    [last_frame | rest] = game
     [previous_frame | _ ] = rest
-    [first, second] = previous_frame
-    score(acc + total(last_frame, first,second), rest )
+    score(acc + Frame.total(last_frame, (needs_doubling?(previous_frame))), rest )
   end
 
 
   def score(acc, game) do
-    last_frame = List.last(game)
-    score(acc + total(last_frame), [] )
+    last_frame = last_set(game)
+    score(acc + Frame.total(last_frame), [] )
   end
 
-  defp total(last_frame, 10, nil) do
-    Enum.sum(last_frame)*2
+  defp add_frame(false, game, pins) do
+    List.replace_at(game, -1, Frame.add_roll(last_set(game), pins))
   end
 
-  defp total(last_frame, first, second) when first+second==10 do
-    [one, two] = last_frame
-    (one*2)+two
+  defp add_frame(true, game, pins) when length(game)<10 do
+    game ++ [Frame.new(pins)]
   end
 
-  defp total(frame, _, _) do
-    Enum.sum(frame)
-  end
-
-  defp total ([10, nil]) do
-    10
-  end
-
-  defp total(frame) do
-    Enum.sum(frame)
-  end
-
-  defp add_frame(size=1, game, pins) do
-    List.replace_at(game, -1, last_set(game) ++ [pins])
-  end
-
-  defp add_frame(size=2,game, pins=10) do
-    game ++ [[pins, nil]]
-  end
-
-  defp add_frame(size=2,game, pins) do
-    game ++ [[pins]]
-  end
-
-  defp add_frame_to_total(frame=[10, nil], total) do
-    total+10
-  end
-
-  defp add_frame_to_total(frame, total) do
-    total + Enum.sum(frame)
+  defp add_frame(true, _, _) do
+    raise "This game is finished!"
   end
 
   defp last_set(game) do
     List.last(game)
+  end
+
+  defp needs_doubling?(%Frame{first: 10}, %Frame{first: 10}) do
+    :double_strike
+  end
+
+  defp needs_doubling?(frame, _) do
+    needs_doubling?(frame)
+  end
+
+  defp needs_doubling?(%Frame{first: 10}) do
+    :strike
+  end
+
+  defp needs_doubling?(frame) do
+    cond do
+      Frame.total(frame) == 10 ->
+        :spare
+      true ->
+        :regular
+    end
   end
 end
