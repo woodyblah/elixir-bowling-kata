@@ -4,11 +4,11 @@ defmodule Game do
   end
 
   def roll([], pins) do
-    [[pins]]
+    [Frame.new(pins)]
   end
 
   def roll(game, pins) do
-    length(last_set(game))
+    Frame.complete?(last_set(game))
      |> add_frame(game, pins)
   end
 
@@ -19,8 +19,7 @@ defmodule Game do
   def score(game) when length(game)>1 do
     [last_frame | rest] = Enum.reverse(game)
     [previous_frame | _] = rest
-    [first, second] = previous_frame
-    score( total(last_frame, first,second), rest )
+    score( total(last_frame, previous_frame.first, previous_frame.second), rest )
   end
 
   def score(game) do
@@ -35,8 +34,7 @@ defmodule Game do
   def score(acc, game) when length(game)>1 do
     [last_frame | rest] = game
     [previous_frame | _ ] = rest
-    [first, second] = previous_frame
-    score(acc + total(last_frame, first,second), rest )
+    score(acc + total(last_frame, previous_frame.first, previous_frame.second), rest )
   end
 
 
@@ -45,49 +43,28 @@ defmodule Game do
     score(acc + total(last_frame), [] )
   end
 
-  defp total([10, nil], 10, nil) do
-   20
-  end
-
-  defp total([10, nil], first, second) when first+second==10 do
-    20
-  end
-
-  defp total([10, nil], _, _) do
-    10
-  end
-
   defp total(last_frame, 10, nil) do
-    Enum.sum(last_frame)*2
+    Frame.total(last_frame)*2
   end
 
   defp total(last_frame, first, second) when first+second==10 do
-    [one, two] = last_frame
-    (one*2)+two
+    Frame.total(last_frame)+last_frame.first
   end
 
   defp total(frame, _, _) do
-    Enum.sum(frame)
-  end
-
-  defp total([10, nil]) do
-    10
+    Frame.total(frame)
   end
 
   defp total(frame) do
-    Enum.sum(frame)
+    Frame.total(frame)
   end
 
-  defp add_frame(1, game, pins) do
-    List.replace_at(game, -1, last_set(game) ++ [pins])
+  defp add_frame(false, game, pins) do
+    List.replace_at(game, -1, Frame.add_roll(last_set(game), pins))
   end
 
-  defp add_frame(2,game, pins=10) do
-    game ++ [[pins, nil]]
-  end
-
-  defp add_frame(2,game, pins) do
-    game ++ [[pins]]
+  defp add_frame(true,game, pins) do
+    game ++ [Frame.new(pins)]
   end
 
   defp last_set(game) do
