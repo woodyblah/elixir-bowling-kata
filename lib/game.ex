@@ -24,7 +24,7 @@ defmodule Game do
   end
 
   def score(game) do
-    last_frame = List.last(game)
+    last_frame = last_set(game)
     score( total(last_frame), [] )
   end
 
@@ -33,7 +33,7 @@ defmodule Game do
   end
 
   def score(acc, game) when length(game)>1 do
-    [last_frame | rest] = Enum.reverse(game)
+    [last_frame | rest] = game
     [previous_frame | _ ] = rest
     [first, second] = previous_frame
     score(acc + total(last_frame, first,second), rest )
@@ -41,8 +41,20 @@ defmodule Game do
 
 
   def score(acc, game) do
-    last_frame = List.last(game)
+    last_frame = last_set(game)
     score(acc + total(last_frame), [] )
+  end
+
+  defp total([10, nil], 10, nil) do
+   20
+  end
+
+  defp total([10, nil], first, second) when first+second==10 do
+    20
+  end
+
+  defp total([10, nil], _, _) do
+    10
   end
 
   defp total(last_frame, 10, nil) do
@@ -58,7 +70,7 @@ defmodule Game do
     Enum.sum(frame)
   end
 
-  defp total ([10, nil]) do
+  defp total([10, nil]) do
     10
   end
 
@@ -66,24 +78,16 @@ defmodule Game do
     Enum.sum(frame)
   end
 
-  defp add_frame(size=1, game, pins) do
+  defp add_frame(1, game, pins) do
     List.replace_at(game, -1, last_set(game) ++ [pins])
   end
 
-  defp add_frame(size=2,game, pins=10) do
+  defp add_frame(2,game, pins=10) do
     game ++ [[pins, nil]]
   end
 
-  defp add_frame(size=2,game, pins) do
+  defp add_frame(2,game, pins) do
     game ++ [[pins]]
-  end
-
-  defp add_frame_to_total(frame=[10, nil], total) do
-    total+10
-  end
-
-  defp add_frame_to_total(frame, total) do
-    total + Enum.sum(frame)
   end
 
   defp last_set(game) do
